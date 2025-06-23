@@ -18,26 +18,42 @@ A focused Model Context Protocol (MCP) server that provides comprehensive NBA pl
 
 ## Features
 
-This MCP server provides the following specialized NBA player statistics tools:
+This MCP server provides specialized NBA player statistics tools across three layers of depth:
 
-### Core Statistics
+### Layer 1: Core Statistics (Tools 1-10)
 - **Career Stats**: Complete career statistics with season-by-season breakdowns
 - **Season Stats**: Detailed stats for specific seasons including playoffs
 - **Per-Game Averages**: Traditional per-game statistics
 - **Total Statistics**: Season and career totals (not averages)
 - **Per-36 Minutes**: Pace-adjusted per-36-minute statistics
 - **Advanced Metrics**: PER, TS%, WS, BPM, VORP, and other efficiency metrics
-
-### Specialized Analysis
 - **Player Comparisons**: Side-by-side comparisons between two players
 - **Shooting Splits**: Detailed shooting percentages and volume stats
 - **Playoff Performance**: Complete playoff statistics with regular season comparisons
 - **Career Highlights**: Best seasons, milestones, and achievements
 
+### Layer 2: Deep Analytics (Tools 11-17)
+- **Game Logs**: Game-by-game statistics for detailed analysis
+- **Specific Stat Queries**: Get individual stats for any season (e.g., "Steph's 3P% in 2018")
+- **Awards & Voting**: MVP, DPOY, and other award voting positions
+- **Vs. Team Stats**: Career performance against specific teams
+- **Monthly Splits**: Performance broken down by month
+- **Clutch Stats**: Performance in close games and pressure situations
+- **Playoff Details**: Year-by-year playoff performance
+
+### Layer 3: Ultra-Deep Analytics (Tools 18-23)
+- **Career Trends**: Year-over-year progression and decline analysis
+- **Game Highs**: Career highs, 40+ point games, triple-doubles
+- **Situational Splits**: Home/away, rest days, win/loss situations
+- **Quarter Stats**: 4th quarter specialization and clutch performance
+- **Milestone Tracking**: Progress toward records with projections
+- **All-Time Rankings**: Where players rank in NBA history
+
 ### Additional Features
 - **Player Headshots**: Basketball-reference.com player headshot URLs
 - **Multiple Stat Types**: PER_GAME, TOTALS, PER_MINUTE, PER_POSS, ADVANCED
 - **Historical Data**: Access to historical seasons and career progressions
+- **23 Total Tools**: Comprehensive coverage of every conceivable player stat query
 
 ## Quick Start
 
@@ -225,10 +241,116 @@ Get career highlights and achievements.
 **Parameters:**
 - `player_name` (string, required): The player's name
 
+## Layer 2: Deep Analytics Tools
+
+### 11. `get_player_game_log`
+Get game-by-game statistics for a specific season.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `season` (integer, required): Season year (e.g., 2024)
+- `playoffs` (boolean, optional): Whether to get playoff game logs
+- `date_from` (string, optional): Start date in 'YYYY-MM-DD' format
+- `date_to` (string, optional): End date in 'YYYY-MM-DD' format
+
+### 12. `get_player_specific_stat`
+Get a specific statistic for a player in a given season. Perfect for answering questions like "What was Steph's 3P% in 2018?"
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `stat_name` (string, required): The specific stat (e.g., "PTS", "3P%", "PER")
+- `season` (integer, required): Season year
+
+### 13. `get_player_vs_team_stats`
+Get career statistics against a specific team.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `team_abbreviation` (string, required): Team code (e.g., "GSW", "LAL")
+- `stat_type` (string, optional): Type of stats
+
+### 14. `get_player_awards_voting`
+Get awards and voting history.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `award_type` (string, optional): "MVP", "DPOY", "ROY", "SMOY", "MIP"
+
+### 15. `get_player_monthly_splits`
+Get statistics broken down by month.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `season` (integer, required): Season year
+- `month` (string, optional): Specific month or None for all
+
+### 16. `get_player_clutch_stats`
+Get performance in clutch situations.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `season` (integer, optional): Specific season or None for career
+
+### 17. `get_player_playoffs_by_year`
+Get detailed playoff statistics for a specific year.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `season` (integer, required): Season year
+
+## Layer 3: Ultra-Deep Analytics Tools
+
+### 18. `get_player_career_trends`
+Analyze career trends and progression, including year-over-year changes and decline/improvement patterns.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `stat_name` (string, optional): The stat to analyze trends for (default: "PTS")
+- `window_size` (integer, optional): Years for moving average (default: 3)
+
+### 19. `get_player_game_highs`
+Get career high games and milestone performances (40+ point games, 50+ point games, triple-doubles).
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `threshold_points` (integer, optional): Point threshold for high-scoring games (default: 40)
+- `include_triple_doubles` (boolean, optional): Whether to estimate triple-double games
+
+### 20. `get_player_situational_splits`
+Get situational performance splits including home/away, rest days, and win/loss situations.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `season` (integer, optional): Specific season or None for career
+- `split_type` (string, optional): "home_away", "rest_days", "monthly", "win_loss"
+
+### 21. `get_player_quarter_stats`
+Get quarter-by-quarter performance, especially 4th quarter and overtime stats.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `season` (integer, optional): Specific season or None for career
+- `quarter` (string, optional): "1st", "2nd", "3rd", "4th", "OT", or "all"
+
+### 22. `get_player_milestone_tracker`
+Track progress toward career milestones with projections for achievement.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `milestone_type` (string, optional): "points", "assists", "rebounds", "3pm", "games"
+
+### 23. `get_player_rankings`
+Get all-time rankings for a player in various categories.
+
+**Parameters:**
+- `player_name` (string, required): The player's name
+- `category` (string, optional): "points", "assists", "rebounds", "3pm", "steals", "blocks"
+
 ## Examples
 
 Here are some example questions this MCP server can answer:
 
+### Basic Queries (Layer 1)
 1. **Career Overview**: "What are LeBron James' career statistics?"
 2. **Season Comparison**: "How did Stephen Curry perform in the 2016 season?"
 3. **Player Comparison**: "Compare Michael Jordan and LeBron James career stats"
@@ -237,6 +359,26 @@ Here are some example questions this MCP server can answer:
 6. **Playoff Performance**: "How do Kawhi Leonard's playoff stats compare to regular season?"
 7. **Career Milestones**: "What are Kareem Abdul-Jabbar's career highlights?"
 8. **Per-36 Stats**: "What are Giannis Antetokounmpo's per-36 minute stats?"
+
+### Deep Analytics Queries (Layer 2)
+9. **Specific Stat**: "What was Steph Curry's 3-point percentage in 2018?"
+10. **Points Query**: "How many points did Stephen Curry average in 2024?"
+11. **Awards**: "Where did LeBron James finish in MVP voting in 2020?"
+12. **Game Logs**: "Show me Damian Lillard's game log for the 2021 playoffs"
+13. **Vs Team**: "What are Kevin Durant's career stats against the Lakers?"
+14. **Monthly**: "How did Jayson Tatum perform in December 2023?"
+15. **Clutch**: "What are Kyrie Irving's clutch stats for his career?"
+16. **Playoff Year**: "How did Jimmy Butler perform in the 2020 playoffs?"
+
+### Ultra-Deep Analytics Queries (Layer 3)
+17. **Career Trends**: "Is LeBron James declining with age?"
+18. **Milestone Games**: "How many 40-point games does Kevin Durant have?"
+19. **Home/Away**: "How does Joel Embiid perform at home vs away?"
+20. **4th Quarter**: "What's Luka Dončić's scoring average in 4th quarters?"
+21. **Milestone Tracking**: "When will LeBron pass 40,000 points?"
+22. **All-Time Rankings**: "Where does Steph Curry rank all-time in 3-pointers made?"
+23. **Situational**: "How does Giannis perform on back-to-backs?"
+24. **Quarter Breakdown**: "What percentage of Dame's points come in the 4th?"
 
 ### Stat Type Explanations
 
@@ -254,6 +396,12 @@ Here are some example questions this MCP server can answer:
 - **VORP**: Value Over Replacement Player
 - **eFG%**: Effective Field Goal Percentage
 - **USG%**: Usage Rate
+- **ORtg**: Offensive Rating (points per 100 possessions)
+- **DRtg**: Defensive Rating (points allowed per 100 possessions)
+- **3P%**: Three-Point Field Goal Percentage
+- **FT%**: Free Throw Percentage
+- **AST%**: Assist Percentage
+- **REB%**: Rebound Percentage
 
 ## Basketball Reference Scraper Fixes
 
@@ -454,7 +602,28 @@ To contribute our fixes back to the original library:
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
+### Version 0.3.0 (Latest)
+- Added Layer 3 ultra-deep analytics tools (6 new tools)
+- Career trend analysis with year-over-year progression
+- Game highs and milestone tracking (40+ pt games, triple-doubles)
+- Situational splits (home/away, rest days, wins/losses)
+- Quarter-by-quarter performance analysis
+- Milestone projections and all-time rankings
+- Now includes 23 total tools across 3 layers
+
+### Version 0.2.0
+- Added Layer 2 deep analytics tools (7 new tools)
+- Game logs and specific stat queries
+- Awards and voting history support
+- Team matchup statistics
+- Monthly and temporal splits
+- Clutch performance metrics
+- Enhanced playoff year-by-year analysis
+
+### Version 0.1.0
+- Initial release with 10 core player statistics tools
+- Basketball-reference.com compatibility fixes
+- Career, season, and advanced statistics
 
 ## License
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nba-player-stats-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Model Context Protocol server for NBA player statistics from basketball-reference.com"
 readme = "README.md"
 requires-python = ">=3.8"
