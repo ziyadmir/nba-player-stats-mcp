@@ -45,9 +45,9 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/nba-player-stats-mcp"
-"Bug Tracker" = "https://github.com/yourusername/nba-player-stats-mcp/issues"
-"Documentation" = "https://github.com/yourusername/nba-player-stats-mcp#readme"
+"Homepage" = "https://github.com/ziyadmir/nba-player-stats-mcp"
+"Bug Tracker" = "https://github.com/ziyadmir/nba-player-stats-mcp/issues"
+"Documentation" = "https://github.com/ziyadmir/nba-player-stats-mcp#readme"
 
 [project.scripts]
 nba-player-stats-server = "src.server:main"

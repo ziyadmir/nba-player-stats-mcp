@@ -51,7 +51,7 @@ pip install nba-player-stats-mcp
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/nba-player-stats-mcp
+git clone https://github.com/ziyadmir/nba-player-stats-mcp
 cd nba-player-stats-mcp
 ```
 
@@ -103,7 +103,7 @@ For development or to get the latest changes:
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/nba-player-stats-mcp
+git clone https://github.com/ziyadmir/nba-player-stats-mcp
 cd nba-player-stats-mcp
 ```
 
@@ -469,4 +469,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-For issues and feature requests, please use the [GitHub issue tracker](https://github.com/yourusername/nba-player-stats-mcp/issues).
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/ziyadmir/nba-player-stats-mcp/issues).
