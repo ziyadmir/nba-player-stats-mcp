@@ -1,0 +1,8 @@
+# To install this package, use:
+# pip install nba-player-stats-mcp
+#
+# For development installation:
+# pip install -e ".[dev]"
+#
+# This file is kept for compatibility with tools that expect requirements.txt
+# All dependencies are defined in pyproject.toml

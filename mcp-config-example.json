@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "nba-player-stats": {
+      "command": "python",
+      "args": [
+        "/absolute/path/to/basketball/src/server.py"
+      ],
+      "cwd": "/absolute/path/to/basketball"
+    }
+  }
+}
