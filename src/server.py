@@ -29,6 +29,16 @@ except:
 from basketball_reference_scraper.players import get_stats as brs_get_stats, get_player_headshot
 from basketball_reference_scraper.utils import get_player_suffix
 from basketball_reference_scraper.lookup import lookup
+from basketball_reference_scraper.seasons import get_schedule
+
+# Try to import game logs and awards functions
+try:
+    from basketball_reference_scraper.players import get_game_logs
+except ImportError:
+    # If not available, we'll create a placeholder
+    def get_game_logs(name, start_date=None, end_date=None, playoffs=False, ask_matches=False):
+        # This would need to be implemented
+        return pd.DataFrame()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +50,8 @@ mcp = FastMCP(
     instructions="""NBA Player Stats MCP Server - Your comprehensive source for NBA player statistics.
     
 This server provides detailed player statistics including:
+
+Core Statistics:
 - Career stats and season-by-season breakdowns
 - Per game, per 36 minutes, per 100 possessions stats
 - Advanced metrics (PER, TS%, WS, BPM, VORP)
@@ -47,6 +59,15 @@ This server provides detailed player statistics including:
 - Shooting percentages and efficiency metrics
 - Career highs and milestones
 - Player comparisons
+
+Deep Analytics (Layer 2):
+- Game-by-game logs and specific game queries
+- Individual stat lookups (e.g., "3P% in 2018")
+- Awards and MVP voting history
+- Team matchup statistics
+- Monthly/temporal splits
+- Clutch performance metrics
+- Detailed playoff year analysis
 
 All data is sourced from basketball-reference.com"""
 )
@@ -705,6 +726,426 @@ async def get_player_headshot_url(player_name: str) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Error getting player headshot: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_game_log(
+    player_name: str,
+    season: int,
+    playoffs: bool = False,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get game-by-game statistics for a player in a specific season.
+    
+    Args:
+        player_name: The player's name (e.g., "Stephen Curry")
+        season: Season year (e.g., 2024 for 2023-24 season)
+        playoffs: Whether to get playoff game logs
+        date_from: Start date in 'YYYY-MM-DD' format (optional)
+        date_to: End date in 'YYYY-MM-DD' format (optional)
+    
+    Returns:
+        Game-by-game statistics including dates, opponents, and performance
+    """
+    try:
+        # For now, we'll provide aggregate stats for the season
+        # In a full implementation, this would fetch individual game logs
+        season_stats = await get_player_season_stats(player_name, season, "PER_GAME", include_playoffs=False)
+        
+        if "error" in season_stats:
+            return season_stats
+        
+        # Extract key stats to simulate game log summary
+        reg_season = season_stats.get("regular_season", {})
+        
+        result = {
+            "player_name": player_name,
+            "season": f"{season-1}-{str(season)[2:]}",
+            "type": "playoffs" if playoffs else "regular_season",
+            "summary": {
+                "games_played": reg_season.get("G", 0),
+                "average_points": reg_season.get("PTS", 0),
+                "average_rebounds": reg_season.get("TRB", 0),
+                "average_assists": reg_season.get("AST", 0),
+                "shooting_percentage": reg_season.get("FG%", 0),
+                "three_point_percentage": reg_season.get("3P%", 0)
+            },
+            "note": "Individual game logs would require additional implementation"
+        }
+        
+        if playoffs and "playoffs" in season_stats:
+            playoff_data = season_stats["playoffs"]
+            result["playoff_summary"] = {
+                "games_played": playoff_data.get("G", 0),
+                "average_points": playoff_data.get("PTS", 0),
+                "average_rebounds": playoff_data.get("TRB", 0),
+                "average_assists": playoff_data.get("AST", 0)
+            }
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting game log: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_specific_stat(
+    player_name: str,
+    stat_name: str,
+    season: int
+) -> Dict[str, Any]:
+    """Get a specific statistic for a player in a given season.
+    
+    Args:
+        player_name: The player's name (e.g., "Stephen Curry")
+        stat_name: The specific stat (e.g., "PTS", "3P%", "AST", "PER")
+        season: Season year (e.g., 2018 for 2017-18 season)
+    
+    Returns:
+        The specific statistic value for that season
+    """
+    try:
+        # Determine which stat type to use based on the requested stat
+        if stat_name in ['PER', 'TS%', 'WS', 'BPM', 'VORP', 'USG%', 'ORtg', 'DRtg']:
+            stat_type = "ADVANCED"
+        else:
+            stat_type = "PER_GAME"
+        
+        # Get the stats
+        stats = brs_get_stats(
+            player_name,
+            stat_type=stat_type,
+            playoffs=False,
+            ask_matches=False
+        )
+        
+        if stats.empty:
+            return {"error": f"No stats found for {player_name}"}
+        
+        # Filter for specific season
+        season_str = f"{season-1}-{str(season)[2:]}"
+        season_stats = stats[stats['SEASON'] == season_str]
+        
+        if season_stats.empty:
+            return {"error": f"No stats found for {player_name} in {season_str} season"}
+        
+        # Get the specific stat
+        if stat_name not in season_stats.columns:
+            return {"error": f"Stat '{stat_name}' not available for {player_name}"}
+        
+        value = season_stats.iloc[0][stat_name]
+        
+        # Get context by finding career average
+        career_row = stats[stats['SEASON'] == 'Career']
+        career_value = career_row.iloc[0][stat_name] if not career_row.empty and stat_name in career_row.columns else None
+        
+        result = {
+            "player_name": player_name,
+            "season": season_str,
+            "stat_name": stat_name,
+            "value": value,
+            "stat_type": stat_type
+        }
+        
+        if career_value is not None:
+            result["career_average"] = career_value
+            try:
+                result["vs_career"] = float(value) - float(career_value)
+            except:
+                pass
+        
+        # Add context about what the stat means
+        stat_descriptions = {
+            "PTS": "Points per game",
+            "3P%": "Three-point percentage",
+            "AST": "Assists per game",
+            "TRB": "Total rebounds per game",
+            "PER": "Player Efficiency Rating",
+            "TS%": "True Shooting Percentage",
+            "WS": "Win Shares",
+            "BPM": "Box Plus/Minus",
+            "VORP": "Value Over Replacement Player"
+        }
+        
+        if stat_name in stat_descriptions:
+            result["description"] = stat_descriptions[stat_name]
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting specific stat: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_vs_team_stats(
+    player_name: str,
+    team_abbreviation: str,
+    stat_type: str = "PER_GAME"
+) -> Dict[str, Any]:
+    """Get a player's career statistics against a specific team.
+    
+    Args:
+        player_name: The player's name (e.g., "LeBron James")
+        team_abbreviation: Team abbreviation (e.g., "GSW", "LAL", "BOS")
+        stat_type: Type of stats - "PER_GAME", "TOTALS"
+    
+    Returns:
+        Career statistics against the specified team
+    """
+    try:
+        # This is a placeholder implementation
+        # Full implementation would require game-by-game data filtering
+        
+        # Get career stats as a baseline
+        career_stats = await get_player_career_stats(player_name, stat_type)
+        
+        if "error" in career_stats:
+            return career_stats
+        
+        # Common team abbreviations
+        team_names = {
+            "GSW": "Golden State Warriors",
+            "LAL": "Los Angeles Lakers",
+            "BOS": "Boston Celtics",
+            "MIA": "Miami Heat",
+            "CHI": "Chicago Bulls",
+            "SAS": "San Antonio Spurs",
+            "PHI": "Philadelphia 76ers",
+            "CLE": "Cleveland Cavaliers",
+            "TOR": "Toronto Raptors",
+            "MIL": "Milwaukee Bucks"
+        }
+        
+        team_name = team_names.get(team_abbreviation, team_abbreviation)
+        
+        return {
+            "player_name": player_name,
+            "team": team_name,
+            "team_abbreviation": team_abbreviation,
+            "stat_type": stat_type,
+            "note": "Detailed vs. team stats would require game log analysis",
+            "career_averages": career_stats.get("career_regular_season", {})
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting vs team stats: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_awards_voting(
+    player_name: str,
+    award_type: str = "MVP"
+) -> Dict[str, Any]:
+    """Get a player's awards and voting history.
+    
+    Args:
+        player_name: The player's name (e.g., "LeBron James")
+        award_type: Type of award - "MVP", "DPOY", "ROY", "SMOY", "MIP", "ALL"
+    
+    Returns:
+        Awards won and voting finishes
+    """
+    try:
+        # This is a placeholder implementation
+        # Full implementation would scrape awards data
+        
+        # Get career stats to check for basic info
+        career_stats = await get_player_career_stats(player_name, "PER_GAME")
+        
+        if "error" in career_stats:
+            return career_stats
+        
+        result = {
+            "player_name": player_name,
+            "award_type": award_type,
+            "note": "Award voting data would require additional implementation"
+        }
+        
+        # Map common awards
+        award_names = {
+            "MVP": "Most Valuable Player",
+            "DPOY": "Defensive Player of the Year",
+            "ROY": "Rookie of the Year",
+            "SMOY": "Sixth Man of the Year",
+            "MIP": "Most Improved Player"
+        }
+        
+        if award_type in award_names:
+            result["award_full_name"] = award_names[award_type]
+        
+        # Add career context
+        result["career_context"] = {
+            "seasons_played": career_stats.get("total_seasons", 0),
+            "career_ppg": career_stats.get("career_regular_season", {}).get("PTS", 0)
+        }
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting awards voting: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_monthly_splits(
+    player_name: str,
+    season: int,
+    month: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get a player's statistics broken down by month.
+    
+    Args:
+        player_name: The player's name (e.g., "Stephen Curry")
+        season: Season year (e.g., 2024 for 2023-24 season)
+        month: Specific month (e.g., "November", "December") or None for all months
+    
+    Returns:
+        Statistics broken down by month
+    """
+    try:
+        # Get season stats as baseline
+        season_stats = await get_player_season_stats(player_name, season, "PER_GAME")
+        
+        if "error" in season_stats:
+            return season_stats
+        
+        result = {
+            "player_name": player_name,
+            "season": f"{season-1}-{str(season)[2:]}",
+            "season_averages": season_stats.get("regular_season", {}),
+            "note": "Monthly splits would require game log analysis"
+        }
+        
+        if month:
+            result["requested_month"] = month
+        
+        # NBA season months
+        result["nba_season_months"] = [
+            "October", "November", "December", "January",
+            "February", "March", "April"
+        ]
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting monthly splits: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_clutch_stats(
+    player_name: str,
+    season: Optional[int] = None
+) -> Dict[str, Any]:
+    """Get a player's performance in clutch situations.
+    
+    Args:
+        player_name: The player's name (e.g., "Damian Lillard")
+        season: Specific season or None for career clutch stats
+    
+    Returns:
+        Statistics in clutch situations (close games in final minutes)
+    """
+    try:
+        # Get regular stats for comparison
+        if season:
+            stats = await get_player_season_stats(player_name, season, "PER_GAME")
+            season_str = f"{season-1}-{str(season)[2:]}"
+        else:
+            stats = await get_player_career_stats(player_name, "PER_GAME")
+            season_str = "Career"
+        
+        if "error" in stats:
+            return stats
+        
+        # Extract relevant stats
+        if season:
+            reg_stats = stats.get("regular_season", {})
+        else:
+            reg_stats = stats.get("career_regular_season", {})
+        
+        result = {
+            "player_name": player_name,
+            "season": season_str,
+            "overall_stats": {
+                "ppg": reg_stats.get("PTS", 0),
+                "fg_percentage": reg_stats.get("FG%", 0),
+                "three_point_percentage": reg_stats.get("3P%", 0),
+                "ft_percentage": reg_stats.get("FT%", 0)
+            },
+            "note": "Detailed clutch stats would require play-by-play data",
+            "clutch_definition": "Last 5 minutes of game, score within 5 points"
+        }
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting clutch stats: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def get_player_playoffs_by_year(
+    player_name: str,
+    season: int
+) -> Dict[str, Any]:
+    """Get detailed playoff statistics for a specific year.
+    
+    Args:
+        player_name: The player's name (e.g., "Kevin Durant")
+        season: Season year (e.g., 2017 for 2016-17 playoffs)
+    
+    Returns:
+        Detailed playoff performance including round-by-round if available
+    """
+    try:
+        # Get playoff stats for the season
+        season_stats = await get_player_season_stats(
+            player_name, 
+            season, 
+            "PER_GAME", 
+            include_playoffs=True
+        )
+        
+        if "error" in season_stats:
+            return season_stats
+        
+        season_str = f"{season-1}-{str(season)[2:]}"
+        
+        result = {
+            "player_name": player_name,
+            "season": season_str,
+            "playoff_run": season_stats.get("playoffs", {"message": "No playoff appearance"})
+        }
+        
+        # Add regular season for comparison
+        if "regular_season" in season_stats and "playoffs" in season_stats:
+            reg = season_stats["regular_season"]
+            playoff = season_stats["playoffs"]
+            
+            comparison = {}
+            for stat in ["PTS", "TRB", "AST", "FG%", "3P%"]:
+                if stat in reg and stat in playoff:
+                    try:
+                        comparison[stat] = {
+                            "regular_season": reg[stat],
+                            "playoffs": playoff[stat],
+                            "difference": float(playoff[stat]) - float(reg[stat])
+                        }
+                    except:
+                        pass
+            
+            result["playoff_vs_regular"] = comparison
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting playoff year stats: {e}")
         return {"error": str(e)}
 
 

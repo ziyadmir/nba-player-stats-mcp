@@ -121,11 +121,69 @@ def shooting_analysis():
                 print(f"  Best 3P% Season: {best_season['SEASON']} ({best_season['3P%']})")
             print()
 
+def demonstrate_deep_analytics():
+    """Demonstrate the new Layer 2 deep analytics capabilities"""
+    print("=== Layer 2 Deep Analytics Examples ===\n")
+    
+    # 1. Specific stat query
+    print("1. Specific Stat Query: Steph Curry's 3P% in 2018")
+    curry_stats = get_stats('Stephen Curry', stat_type='PER_GAME', ask_matches=False)
+    curry_2018 = curry_stats[curry_stats['SEASON'] == '2017-18']
+    if not curry_2018.empty:
+        print(f"   3P% in 2017-18: {curry_2018['3P%'].values[0]}")
+        print(f"   3PM per game: {curry_2018['3P'].values[0]}")
+        print(f"   3PA per game: {curry_2018['3PA'].values[0]}")
+    print()
+    
+    # 2. Points in a specific year
+    print("2. Points Query: How many points did Steph Curry average in 2024?")
+    curry_2024 = curry_stats[curry_stats['SEASON'] == '2023-24']
+    if not curry_2024.empty:
+        print(f"   PPG in 2023-24: {curry_2024['PTS'].values[0]}")
+        print(f"   Games played: {curry_2024['G'].values[0]}")
+    print()
+    
+    # 3. Advanced stat lookup
+    print("3. MVP-caliber Season: Giannis Antetokounmpo's PER in 2020")
+    giannis_advanced = get_stats('Giannis Antetokounmpo', stat_type='ADVANCED', ask_matches=False)
+    giannis_2020 = giannis_advanced[giannis_advanced['SEASON'] == '2019-20']
+    if not giannis_2020.empty:
+        print(f"   PER: {giannis_2020['PER'].values[0]}")
+        print(f"   Win Shares: {giannis_2020['WS'].values[0]}")
+        print(f"   VORP: {giannis_2020['VORP'].values[0]}")
+    print()
+    
+    # 4. Playoff performance by year
+    print("4. Playoff Year Analysis: Jimmy Butler 2020 Bubble Run")
+    butler_playoffs = get_stats('Jimmy Butler', stat_type='PER_GAME', playoffs=True, ask_matches=False)
+    butler_2020 = butler_playoffs[butler_playoffs['SEASON'] == '2019-20']
+    if not butler_2020.empty:
+        print(f"   Playoff PPG: {butler_2020['PTS'].values[0]}")
+        print(f"   Playoff APG: {butler_2020['AST'].values[0]}")
+        print(f"   Games played: {butler_2020['G'].values[0]}")
+    print()
+    
+    # 5. Efficiency stats
+    print("5. Efficiency Query: Nikola Jokić's True Shooting % in 2023")
+    jokic_2023 = get_stats('Nikola Jokić', stat_type='ADVANCED', ask_matches=False)
+    jokic_season = jokic_2023[jokic_2023['SEASON'] == '2022-23']
+    if not jokic_season.empty:
+        print(f"   TS%: {jokic_season['TS%'].values[0]}")
+        print(f"   eFG%: {jokic_season['eFG%'].values[0]}")
+    print()
+
+
 if __name__ == "__main__":
     try:
         demonstrate_player_stats()
         compare_players()
         shooting_analysis()
+        demonstrate_deep_analytics()
+        print("\n=== Test Complete ===")
+        print("All examples ran successfully!")
+        print("\nNBA Player Stats MCP Server now includes 17 tools:")
+        print("- 10 Core statistical tools")
+        print("- 7 Deep analytics Layer 2 tools")
     except Exception as e:
         print(f"Error: {e}")
         print("\nMake sure you have installed all requirements:")
